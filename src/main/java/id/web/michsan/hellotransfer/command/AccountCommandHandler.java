@@ -1,13 +1,15 @@
 package id.web.michsan.hellotransfer.command;
 
+import id.web.michsan.hellotransfer.model.Account;
 import id.web.michsan.hellotransfer.repo.AccountRepository;
-import id.web.michsan.hellotransfer.repo.IncorrectResultSizeException;
+import id.web.michsan.hellotransfer.util.jdbc.IncorrectResultSizeException;
 import lombok.Setter;
 
+import javax.inject.Inject;
 import java.math.BigDecimal;
 
 public class AccountCommandHandler {
-    @Setter
+    @Setter @Inject
     private AccountRepository accountRepository;
 
     public void handle(MoneyTransferCommand command) {
@@ -24,11 +26,17 @@ public class AccountCommandHandler {
         }
     }
 
+    public Account handle(CreateAccountCommand command) {
+        Account account = new Account(command.getHolderName(), command.getInitialBalance());
+        accountRepository.create(account);
+        return account;
+    }
+
     private BigDecimal readAccountBalance(String accountNo) {
         try {
             return accountRepository.getBalanceForUpdateByAccountNumber(accountNo);
         } catch (IncorrectResultSizeException e) {
-            throw new UnknownAccountException(accountNo);
+            throw new AccountNotFoundException(accountNo);
         }
     }
 }

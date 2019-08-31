@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.math.BigDecimal;
 
 @AllArgsConstructor
-public class BalanceDisplay {
+public class AccountSummaryDisplay {
     @Getter
     private String accountNumber;
     @Getter

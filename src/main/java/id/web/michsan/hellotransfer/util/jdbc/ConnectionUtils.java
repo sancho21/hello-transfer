@@ -1,4 +1,4 @@
-package id.web.michsan.hellotransfer.repo;
+package id.web.michsan.hellotransfer.util.jdbc;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
@@ -33,8 +33,24 @@ public class ConnectionUtils {
         return connection;
     }
 
-    public static void releaseConnection(Connection connection) {
-        // TODO: nothing right now
+    public static void releaseConnection(Connection connection, DataSource dataSource) {
+        try {
+            Map<Object, Object> threadResources = resources.get();
+            Connection dsConn = (Connection) threadResources.get(dataSource);
+            if (dsConn != null) {
+                if (dsConn.getAutoCommit()) {
+                    connection.close();
+                    threadResources.remove(dataSource);
+                } else {
+                    // Let it be closed by transaction
+                    return;
+                }
+            } else {
+                connection.close();
+            }
+        } catch (SQLException e) {
+            // Just ignore
+        }
     }
 
 }

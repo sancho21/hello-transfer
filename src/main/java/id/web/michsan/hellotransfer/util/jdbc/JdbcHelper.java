@@ -1,4 +1,4 @@
-package id.web.michsan.hellotransfer.repo;
+package id.web.michsan.hellotransfer.util.jdbc;
 
 import lombok.Getter;
 
@@ -19,7 +19,7 @@ public class JdbcHelper {
         this.dataSource = dataSource;
     }
 
-    public int executeUpdate(String query, Object... args) {
+    public int update(String query, Object... args) {
         return doInConnection((connection) -> {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 for (int i = 0; i < args.length; i++) {
@@ -33,7 +33,20 @@ public class JdbcHelper {
         });
     }
 
-    public <T> List<T> executeQuery(String query, Class<T> returnType, Object... args) {
+    public <T> List<T> query(String query, Class<T> returnType, Object... args) {
+        return query(query, rs -> rs.getObject(1, returnType), args);
+    }
+
+    public <T> T queryForObject(String query, Class<T> returnType, Object... args) {
+        List<T> resultList = query(query, returnType, args);
+        if (resultList.size() != 1) {
+            throw new IncorrectResultSizeException(1, resultList.size());
+        }
+
+        return resultList.get(0);
+    }
+
+    public <T> List<T> query(String query, RowMapper<T> rowMapper, Object... args) {
         return doInConnection((connection) -> {
             try (PreparedStatement statement = connection.prepareStatement(query)) {
                 for (int i = 0; i < args.length; i++) {
@@ -44,7 +57,7 @@ public class JdbcHelper {
                 List<T> resultList = new ArrayList<>();
                 try (ResultSet rs = statement.executeQuery()) {
                     while (rs.next()) {
-                        resultList.add(rs.getObject(1, returnType));
+                        resultList.add(rowMapper.toObject(rs));
                     }
                 }
                 return resultList;
@@ -54,8 +67,8 @@ public class JdbcHelper {
         });
     }
 
-    public <T> T executeQueryForObject(String query, Class<T> returnType, Object... args) {
-        List<T> resultList = executeQuery(query, returnType, args);
+    public <T> T queryForObject(String query, RowMapper<T> rowMapper, Object... args) {
+        List<T> resultList = query(query, rowMapper, args);
         if (resultList.size() != 1) {
             throw new IncorrectResultSizeException(1, resultList.size());
         }
@@ -68,7 +81,7 @@ public class JdbcHelper {
         try {
             return executions.apply(connection);
         } finally {
-            ConnectionUtils.releaseConnection(connection);
+            ConnectionUtils.releaseConnection(connection, dataSource);
         }
     }
 
@@ -93,10 +106,11 @@ public class JdbcHelper {
             throw new IllegalStateException("Failed to commit transaction", e);
         } finally {
             try {
-                connection.setAutoCommit(true);
+                connection.close();
             } catch (SQLException e) {
-                throw new IllegalStateException("Failed to restore the world order (autocommit)", e);
+                throw new IllegalStateException("Failed to close connection", e);
             }
         }
     }
+
 }

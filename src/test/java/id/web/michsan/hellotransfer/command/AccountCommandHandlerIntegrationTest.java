@@ -2,7 +2,7 @@ package id.web.michsan.hellotransfer.command;
 
 import com.zaxxer.hikari.HikariDataSource;
 import id.web.michsan.hellotransfer.repo.AccountRepository;
-import id.web.michsan.hellotransfer.repo.JdbcHelper;
+import id.web.michsan.hellotransfer.util.jdbc.JdbcHelper;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +26,6 @@ public class AccountCommandHandlerIntegrationTest
         commandHandler = new AccountCommandHandler();
         commandHandler.setAccountRepository(accountRepository());
 
-        prepareTables();
         jdbcHelper.transactionBegin();
     }
 
@@ -34,18 +33,6 @@ public class AccountCommandHandlerIntegrationTest
     public void after()
     {
         jdbcHelper.transactionEnd(false);
-    }
-
-    private void prepareTables()
-    {
-        try
-        {
-            jdbcHelper.executeUpdate("CREATE TABLE accounts (number VARCHAR(50) NOT NULL, balance DECIMAL(20, 2))");
-        }
-        catch (Exception e)
-        {
-            // Table already created
-        }
     }
 
     @Test
@@ -61,9 +48,9 @@ public class AccountCommandHandlerIntegrationTest
         commandHandler.handle(command);
 
         // And the new balance should reflects it correctly
-        assertThat(jdbcHelper.executeQueryForObject("SELECT balance FROM accounts WHERE number = ?",
+        assertThat(jdbcHelper.queryForObject("SELECT balance FROM accounts WHERE number = ?",
                 BigDecimal.class, "acc01")).isEqualByComparingTo(BigDecimal.ZERO);
-        assertThat(jdbcHelper.executeQueryForObject("SELECT balance FROM accounts WHERE number = ?",
+        assertThat(jdbcHelper.queryForObject("SELECT balance FROM accounts WHERE number = ?",
                 BigDecimal.class, "acc02")).isEqualByComparingTo(new BigDecimal("60"));
     }
 
@@ -89,12 +76,12 @@ public class AccountCommandHandlerIntegrationTest
         // When transferring money to and unknown account
         // Then an exception is thrown
         MoneyTransferCommand command = new MoneyTransferCommand("acc01", "acc02", new BigDecimal(("200")));
-        assertThatThrownBy(() -> commandHandler.handle(command)).isInstanceOf(UnknownAccountException.class);
+        assertThatThrownBy(() -> commandHandler.handle(command)).isInstanceOf(AccountNotFoundException.class);
     }
 
     private void createAccountWithBalance(String accountNo, BigDecimal amount)
     {
-        jdbcHelper.executeUpdate("INSERT INTO accounts (number, balance) VALUES (?, ?)", accountNo, amount);
+        jdbcHelper.update("INSERT INTO accounts (number, balance) VALUES (?, ?)", accountNo, amount);
     }
 
     private AccountRepository accountRepository()

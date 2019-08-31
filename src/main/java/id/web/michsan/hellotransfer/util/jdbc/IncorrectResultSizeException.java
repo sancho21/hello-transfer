@@ -1,4 +1,4 @@
-package id.web.michsan.hellotransfer.repo;
+package id.web.michsan.hellotransfer.util.jdbc;
 
 public class IncorrectResultSizeException extends RuntimeException {
     public IncorrectResultSizeException(int expected, int factual) {

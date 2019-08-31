@@ -1,16 +1,18 @@
 package id.web.michsan.hellotransfer.query;
 
+import id.web.michsan.hellotransfer.model.Account;
 import id.web.michsan.hellotransfer.repo.AccountRepository;
 import lombok.Setter;
 
-import java.math.BigDecimal;
+import javax.inject.Inject;
 
 public class AccountQueryHandler {
     @Setter
+    @Inject
     private AccountRepository accountRepository;
 
-    public BalanceDisplay showBalance(String accountNo) {
-        BigDecimal balance = accountRepository.getBalanceByAccountNumber(accountNo);
-        return new BalanceDisplay(accountNo, balance);
+    public AccountSummaryDisplay showAccountSummary(String accountNo) {
+        Account account = accountRepository.findByAccountNumber(accountNo);
+        return new AccountSummaryDisplay(account.getNumber(), account.getBalance());
     }
 }
