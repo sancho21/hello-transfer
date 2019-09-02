@@ -3,9 +3,9 @@ package id.web.michsan.hellotransfer.command;
 import com.zaxxer.hikari.HikariDataSource;
 import id.web.michsan.hellotransfer.repo.AccountRepository;
 import id.web.michsan.hellotransfer.util.jdbc.JdbcHelper;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.math.BigDecimal;
@@ -18,7 +18,7 @@ public class AccountCommandHandlerIntegrationTest
     private AccountCommandHandler commandHandler;
     private JdbcHelper jdbcHelper;
 
-    @Before
+    @BeforeEach
     public void before() throws Exception
     {
         jdbcHelper = new JdbcHelper(dataSource());
@@ -29,7 +29,7 @@ public class AccountCommandHandlerIntegrationTest
         jdbcHelper.transactionBegin();
     }
 
-    @After
+    @AfterEach
     public void after()
     {
         jdbcHelper.transactionEnd(false);

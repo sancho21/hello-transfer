@@ -1,9 +1,10 @@
 package id.web.michsan.hellotransfer.util.jdbc;
 
 import com.zaxxer.hikari.HikariDataSource;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
@@ -13,7 +14,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 public class JdbcHelperTest {
     private JdbcHelper helper;
 
-    @Before
+    @BeforeEach
     public void before() {
         helper = new JdbcHelper(dataSource());
         helper.transactionBegin();
@@ -24,11 +25,12 @@ public class JdbcHelperTest {
         }
     }
 
-    @After
+    @AfterEach
     public void after() {
         helper.transactionEnd(false);
     }
 
+    @DisplayName("executeQueryForObject - Success case")
     @Test
     public void executeQueryForObject_shouldBeSuccessful() {
         helper.update("INSERT INTO students (id, name) VALUES (1, 'Nina')");
@@ -37,6 +39,7 @@ public class JdbcHelperTest {
         assertThat(foundName).isEqualTo("Nina");
     }
 
+    @DisplayName("executeQueryForObject - Should throw exception if not exactly one")
     @Test
     public void executeQueryForObject_throwExceptionIfNotExactlyOne() {
         // Given there are more than one record having the same name
@@ -50,6 +53,7 @@ public class JdbcHelperTest {
         ).isInstanceOf(IncorrectResultSizeException.class);
     }
 
+    @DisplayName("executeUpdate - Success case")
     @Test
     public void executeUpdate_shouldBeSuccessful() {
         int numOfAffectedRows = helper.update("INSERT INTO students (id, name) VALUES (1, 'Nina')");

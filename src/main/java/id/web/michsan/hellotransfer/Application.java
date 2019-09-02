@@ -17,6 +17,10 @@ public class Application {
             port = Integer.parseInt(args[0]);
         }
 
+        createJerseyServer(port).start();
+    }
+
+    static JerseyServer createJerseyServer(int port) {
         JerseyConfiguration configuration = JerseyConfiguration.builder()
                 .addPackage(AccountController.class.getPackage().getName())
                 .addPort(port)
@@ -26,8 +30,8 @@ public class Application {
         modules.add(new JerseyModule(configuration));
         modules.add(new AccountModule());
 
-        Guice.createInjector(modules)
-                .getInstance(JerseyServer.class).start();
+        return Guice.createInjector(modules)
+                .getInstance(JerseyServer.class);
     }
 
 }
